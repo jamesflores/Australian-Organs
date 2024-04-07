@@ -35,6 +35,45 @@
                 zoom: 10,
                 center: {lat: -33.8688, lng: 151.2093}  // Sydney
             });
+
+            // Try to get the user's location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+
+                    // Reverse geocode the user's location to get the country
+                    var geocoder = new google.maps.Geocoder;
+                    geocoder.geocode({'location': userLocation}, function(results, status) {
+                        if (status === 'OK') {
+                            if (results[0]) {
+                                // Find the country among the address components
+                                var country = results[0].address_components.find(function(component) {
+                                    return component.types.includes('country');
+                                });
+
+                                // If the country is Australia, set the map's center to the user's location
+                                // Otherwise, keep the map's center at Sydney
+                                if (country && country.long_name === 'Australia') {
+                                    map.setCenter(userLocation);
+                                }
+                            }
+                        }
+
+                        // Call updateMarkers after the map's center has been set
+                        updateMarkers();
+                    });
+                }, function() {
+                    // If the user denies the Geolocation request or it fails for some other reason, do nothing
+                    // The map will just stay centered on the default location
+                    updateMarkers();
+                });
+            } else {
+                // If Geolocation is not supported by the user's browser, call updateMarkers with the default location
+                updateMarkers();
+            }
         
             function updateMarkers() {
                 var center = map.getCenter();
