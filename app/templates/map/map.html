@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Organs of Australia | Interactive map by James Flores</title>
+    <meta name="description" content="James Flores is an organist based in Albury with a passion for preserving organ music for many generations to come." />
+	<link rel="canonical" href="https://organs.jamesfloresorganist.com/" />
+	<meta property="og:locale" content="en_US" />
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="Organs of Australia | Interactive map by James Flores" />
+	<meta property="og:description" content="James Flores is an organist based in Albury with a passion for preserving organ music for many generations to come." />
+	<meta property="og:url" content="https://organs.jamesfloresorganist.com/" />
+	<meta property="og:site_name" content="Organs of Australia | Interactive map by James Flores" />
+	<meta property="og:image" content="https://jamesfloresorganist.com/wp-content/uploads/2020/04/JFO-SEOimg1.jpg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:image" content="https://jamesfloresorganist.com/wp-content/uploads/2020/04/Banner-TGP_051-scaled.jpg" />
+    <link rel="icon" href="https://jamesfloresorganist.com/wp-content/uploads/2024/04/cropped-JFO-favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" href="https://jamesfloresorganist.com/wp-content/uploads/2024/04/cropped-JFO-favicon-192x192.png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="https://jamesfloresorganist.com/wp-content/uploads/2024/04/cropped-JFO-favicon-180x180.png" />
+    <style>
+        body {
+            padding-top: 5rem;
+          }
+    </style>
+    <script>
+        window.initMap = function() {
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 10,
+                center: {lat: -33.8688, lng: 151.2093}  // Sydney
+            });
+        
+            function updateMarkers() {
+                var center = map.getCenter();
+                var lat = center.lat();
+                var lon = center.lng();
+                var radius = 50;  // km
+
+                $.ajax({
+                    url: "https://api.ohta.org.au/geosearch/",
+                    data: {'lat': lat, 'lon': lon, 'radius': radius},
+                    dataType: 'json',
+                    success: function(data) {
+                        data.forEach(function(organ) {
+                            var marker = new google.maps.Marker({
+                                position: {lat: organ.latitude, lng: organ.longitude},
+                                map: map,
+                                title: organ.name
+                            });
+
+                            var infoWindow = new google.maps.InfoWindow({
+                                content: '<div class="row">' +
+                                        '<div class="col-4">' +
+                                        '<a href="' + organ.url + '" target="_blank">' +
+                                        '<img src="' + organ.image + '" alt="' + organ.name + '" style="max-width:100%; max-height:100%;" loading="lazy">' +
+                                        '</a></div>' +
+                                        '<div class="col-8">' +
+                                        '<a href="' + organ.url + '" target="_blank"><h5>' + organ.name + '</h5></a>' +
+                                        '<p>' + organ.address + ', ' + organ.city + ', ' + organ.state + ' ' + organ.postcode + '</p>' +
+                                        '<p>' + organ.description + '</p>' +
+                                        '</div></div>'
+                            });
+
+                            var clicked = false;
+
+                            marker.addListener('mouseover', function() {
+                                infoWindow.open(map, marker); 
+                            });
+                            marker.addListener('mouseout', function() {
+                                timeoutId = setTimeout(function() {
+                                    if (!clicked) {
+                                        infoWindow.close();
+                                    }
+                                }, 1000);
+                            });
+                            marker.addListener('click', function() {
+                                clicked = true;
+                                infoWindow.open(map, marker); 
+                            });
+                        });
+                    }
+                });
+            }
+        
+            map.addListener('dragend', function() {
+                updateMarkers();
+            });
+            updateMarkers();
+        }
+
+        window.onload = initMap;
+    </script>
+    <script async src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&loading=async&callback=initMap"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NDK7CM544R"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-NDK7CM544R');
+    </script>
+</head>
+<body>
+    <div class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="https://jamesfloresorganist.com" target="_blank">James Flores</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="mt-5">Organs of Australia</h1>
+        <div class="row">
+            <div class="col-md-4">
+                <p>
+                    This is an interactive map that displays information on organs in Australia. 
+                    The data is sourced from the <a href="https://ohta.org.au" target="_blank">Organ Historical Trust of Australia</a> (OHTA) and is updated regularly by James Flores.
+                </p>
+                <p>
+                    The OHTA web pages are a valuable resource for organ enthusiasts, and this map is intended to make it easier to explore the organs in Australia.
+                    In order to make this possible, an <a href="https://api.ohta.org.au/swagger" target="_blank">unofficial API</a> has been created and, for now, is freely available to use.
+                </p>
+                <p>
+                    For any updates or corrections to the data, please contact James Flores at <a href="mailto:james@jamesflores.net">james@jamesflores.net</a>
+                </p>
+                <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="jamesflores" data-color="#BD5FFF" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#ffffff" data-coffee-color="#FFDD00" ></script>
+            </div>
+            <div class="col-md-8">
+                <div id="map" class="mt-3" style="height: 800px;"></div>
+                <p class="text-center">Click and drag the map to explore organs in Australia.<br>Clicking on the organ name will direct you to the organ's OHTA page.</p>
+            </div>
+        </div>
+        <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="jamesflores" data-description="Support me on Buy me a coffee!" data-message="Shout me a coffee if you found this useful!" data-color="#BD5FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+    </div>
+
+    <footer class="footer mt-4 pt-4 border-top text-center">
+        <div class="container">
+            <p class="text-muted small">&copy; <span id="copyright-year">2024</span> James Flores. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
