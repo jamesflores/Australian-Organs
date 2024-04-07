@@ -86,6 +86,7 @@
                 var lon = center.lng();
                 var radius = 50;  // km
 
+                var currentInfoWindow = null;  // Keep track of the currently open info window
                 $.ajax({
                     url: "https://api.ohta.org.au/geosearch/",
                     data: {'lat': lat, 'lon': lon, 'radius': radius},
@@ -95,33 +96,47 @@
                             var marker = new google.maps.Marker({
                                 position: {lat: organ.latitude, lng: organ.longitude},
                                 map: map,
-                                title: organ.name
+                                title: organ.name,
+                                clicked: false
                             });
 
                             var infoWindow = new google.maps.InfoWindow({
-                                content: '<div class="row">' +
-                                        '<div class="col-4">' +
-                                        '<a href="' + organ.url + '" target="_blank">' +
-                                        '<img src="' + organ.image + '" alt="' + organ.name + '" style="max-width:100%; max-height:100%;" loading="lazy">' +
-                                        '</a></div>' +
-                                        '<div class="col-8">' +
-                                        '<a href="' + organ.url + '" target="_blank"><h5>' + organ.name + '</h5></a>' +
-                                        '<p>' + organ.address + ', ' + organ.city + ', ' + organ.state + ' ' + organ.postcode + '</p>' +
-                                        '<p>' + organ.description + '</p>' +
-                                        '</div></div>'
+                                content: `
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <a href="${organ.url}" target="_blank">
+                                                <img src="${organ.image}" alt="${organ.name}" style="max-width:100%; max-height:100%;" loading="lazy">
+                                            </a>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <a href="${organ.url}" target="_blank">
+                                                <h5>${organ.name}</h5>
+                                            </a>
+                                            <p>${organ.address}, ${organ.city}, ${organ.state} ${organ.postcode}</p>
+                                            <p>${organ.description}</p>
+                                        </div>
+                                    </div>
+                                `
                             });
 
                             var clicked = false;
 
                             marker.addListener('mouseover', function() {
-                                infoWindow.open(map, marker); 
+                                // Close the current info window if it's open
+                                if (currentInfoWindow) {
+                                    currentInfoWindow.close();
+                                }
+                                
+                                // Open the info window for the current marker
+                                this.clicked = true;
+                                infoWindow.open(map, marker);
+
+                                // Set the current info window to the one that was just opened
+                                currentInfoWindow = infoWindow;
                             });
                             marker.addListener('mouseout', function() {
-                                timeoutId = setTimeout(function() {
-                                    if (!clicked) {
-                                        infoWindow.close();
-                                    }
-                                }, 1000);
+                                if (!clicked)
+                                    infoWindow.close();
                             });
                             marker.addListener('click', function() {
                                 clicked = true;
