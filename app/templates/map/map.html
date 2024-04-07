@@ -28,6 +28,11 @@
         body {
             padding-top: 5rem;
           }
+        .navbar-brand img {
+            height: 30px; 
+            width: auto;
+            margin-right: 4px;
+        }
     </style>
     <script>
         window.initMap = function() {
@@ -130,7 +135,6 @@
             map.addListener('dragend', function() {
                 updateMarkers();
             });
-            updateMarkers();
         }
 
         window.onload = initMap;
@@ -147,14 +151,36 @@
     </script>
 </head>
 <body>
-    <div class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
+    <nav class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="https://jamesfloresorganist.com" target="_blank">James Flores</a>
-            <!--<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="{% url 'index' %}">
+                <img src="https://jamesfloresorganist.com/wp-content/uploads/2024/04/JFO-submark-reverse.png" class="img-fluid" alt="James Flores"> 
+                James Flores
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
-            </button>-->
+            </button>
+            <div class="collapse navbar-collapse" id="navbar">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'index' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://jamesfloresorganist.com/" target="_blank">Official website</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://youtube.com/@james.flores" target="_blank">YouTube</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://jamesfloresorganist.com/about/" target="_blank">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://jamesfloresorganist.com/contact/" target="_blank">Contact</a>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
+    </nav>
 
     <div class="container">
         <h1 class="mt-5">Organs of Australia</h1>
@@ -171,7 +197,6 @@
                 <p>
                     For any updates or corrections to the data, please contact James Flores at <a href="mailto:james@jamesflores.net">james@jamesflores.net</a>
                 </p>
-                <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="jamesflores" data-color="#BD5FFF" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#ffffff" data-coffee-color="#FFDD00" ></script>
             </div>
             <div class="col-md-8">
                 <div id="map" class="mt-3" style="height: 800px;"></div>
