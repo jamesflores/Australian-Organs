@@ -36,7 +36,7 @@ window.initMap = function() {
             map.setCenter(place.geometry.location);
         });
     
-        map.setZoom(10);
+        map.setZoom(14);
         updateMarkers(map);
     });
 }
