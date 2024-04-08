@@ -10,6 +10,35 @@ window.initMap = function() {
     });
     
     updateMarkers(map);  // initial markers
+
+    // Create the search box and link it the map
+    var input = document.getElementById('search-box');
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {  // prevent the form from being submitted when the user presses Enter
+            e.preventDefault();  
+            return false;
+        }
+    });
+    var searchBox = new google.maps.places.SearchBox(input);
+    searchBox.addListener('places_changed', function() {
+        var places = searchBox.getPlaces();
+        if (places.length == 0) {
+            return;
+        }
+    
+        // For each place, get the icon, name and location.
+        places.forEach(function(place) {
+            if (!place.geometry) {
+                console.log("Returned place contains no geometry");
+                return;
+            }
+            // Set the center of the map to the location of the place
+            map.setCenter(place.geometry.location);
+        });
+    
+        map.setZoom(10);
+        updateMarkers(map);
+    });
 }
 
 function updateMarkers(map) {
