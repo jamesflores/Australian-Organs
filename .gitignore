@@ -5,3 +5,4 @@ app/__pycache__
 app/migrations/__pycache__
 project/__pycache__
 staticfiles
+app/management/commands/__pycache__
