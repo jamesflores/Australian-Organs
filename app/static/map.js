@@ -49,7 +49,7 @@ function updateMarkers(map) {
 
     var currentInfoWindow = null;  // Keep track of the currently open info window
     $.ajax({
-        url: "https://api.ohta.org.au/geosearch/",
+        url: "https://api.australianorgans.com.au/geosearch/",
         data: {'lat': lat, 'lon': lon, 'radius': radius},
         dataType: 'json',
         success: function(data) {
