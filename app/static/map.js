@@ -64,12 +64,13 @@ function updateMarkers(map) {
                 var infoWindow = new google.maps.InfoWindow({
                     content: `
                         <div class="row">
+                            ${organ.main_image ? `
                             <div class="col-md-4">
                                 <a href="${organ.url}" target="_blank">
-                                    <img src="${organ.image}" alt="${organ.name}" style="max-width:100%; max-height:100%;" loading="lazy">
+                                    <img src="${organ.main_image}" alt="${organ.name}" style="max-width:100%; max-height:100%;" loading="lazy">
                                 </a>
-                            </div>
-                            <div class="col-md-8">
+                            </div>` : ''}
+                            <div class="${organ.main_image ? 'col-md-8' : 'col-md-12'}">
                                 <a href="${organ.url}" target="_blank">
                                     <h5>${organ.name}</h5>
                                 </a>
