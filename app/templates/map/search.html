@@ -3,7 +3,7 @@
 
 {% block script %}
 <script>
-    var nextPageUrl = null; 
+    var nextPageUrl = null;
 
     function clearResults() {
         $("#results").html('');
@@ -14,43 +14,39 @@
         console.log("Search:", url);
         $("#loading").show();
         $("#search").prop('disabled', true);
-    
+
         $.ajax({
             url: url,
             method: "GET",
             success: function(response) {
                 console.log("Response:", response);
                 $("#loading").hide();
-    
-                var keys = ['name', 'builder', 'address', 'city', 'state', 'postcode'];
-                if (!nextPageUrl) {
-                    $("#results").html('');
-                    var table = $('<table class="table" id="results-table"></table>');
-                    var thead = $('<thead></thead>');
-                    var headerRow = $('<tr></tr>');
-                    keys.forEach(function(key) {
-                        headerRow.append('<th>' + key + '</th>');
-                    });
-    
-                    thead.append(headerRow);
-                    table.append(thead);
-                    table.append('<tbody></tbody>');
-                    $("#results").append(table);
-                }
-    
-                var tbody = $('#results-table').find('tbody');
+                
                 response.results.forEach(function(item) {
-                    var row = $('<tr></tr>');
-                    keys.forEach(function(key) {
-                        if (key === 'name') {
-                            row.append('<td><a href="' + item.url + '" target="_blank">' + item[key] + '</a></td>');
-                        } else {
-                            row.append('<td>' + item[key] + '</td>');
-                        }
-                    });
-                    tbody.append(row);
+                    var card = $('<div class="card mb-3"></div>');
+                    var cardRow = $('<div class="row g-0"></div>');  // Bootstrap grid row
+                    
+                    var cardImgCol = $('<div class="col-md-4"></div>');  // Column for the image
+                    var imgHtml = item.main_image ? '<img src="' + item.main_image + '" class="img-fluid rounded-start" alt="' + item.name +'">' : '<div class="img-fluid rounded-start" style="background: #f0f0f0; height: 150px;"></div>';
+                    cardImgCol.append(imgHtml);
+
+                    var cardBodyCol = $('<div class="col-md-8"></div>');  // Column for the text
+                    var cardBody = $('<div class="card-body"></div>');
+                    var cardContent = '';
+                    
+                    cardContent += '<h5 class="card-title"><a href="' + item.url + '" target="_blank">' + item.name + '</a></h5>';
+                    cardContent += '<p class="card-text"><small class="text-muted">' + item.builder + '</small></p>';
+                    cardContent += '<p class="card-text">' + item.address + ', ' + item.city + ' ' + item.state + ', ' + item.postcode + '</p>';
+                    cardContent += '<p class="card-text">' + item.description + '</p>';
+                    
+                    cardBody.append(cardContent);
+                    cardBodyCol.append(cardBody);
+                    
+                    cardRow.append(cardImgCol).append(cardBodyCol);
+                    card.append(cardRow);
+                    $("#results").append(card);
                 });
-    
+
                 nextPageUrl = response.next;
                 $("#search").prop('disabled', false);
             },
@@ -62,28 +58,27 @@
             }
         });
     }
-    
-    // search on button click or enter key
+
     $(document).ready(function() {
+        var url = "https://api.australianorgans.com.au";
+
         $("#search").click(function() {
             clearResults();
             var query = $("#q").val();
-            var url = "https://api.australianorgans.com.au/search/?q=" + query;
-            performSearch(url);
+            performSearch(`${url}/search/?q=${query}`);
         });
-    
+
         $("#q").keydown(function(event) {
             if (event.key === 'Enter' && !$("#search").prop('disabled')) {
                 clearResults();
                 $("#search").click();
             }
         });
-    
-        // infinite scroll
+
         $(window).scroll(function() {
             var scrollPosition = $(window).scrollTop() + $(window).height();
             var nearBottom = $(document).height() - 10;
-    
+
             if (scrollPosition >= nearBottom) {
                 if (nextPageUrl && !$("#search").prop('disabled')) {
                     console.log("Loading more results...");
@@ -91,33 +86,34 @@
                 }
             }
         });
-    });    
+
+        performSearch(`${url}/organs/?random_order=true`)  // Load random organs on page load
+    });
 </script>
 {% endblock %}
 
 {% block content %}
 <h1 class="mt-5 mb-3">Australian Organs</h1>
 <div class="row">
-    <div class="col-md-10">
+    <div class="col-8 col-md-10">
         <div class="form-group">
             <input type="text" class="form-control" name="q" id="q" placeholder="Enter search query" autofocus>
         </div>
-        <small>Examples: St Matthew's Albury, Sydney Town Hall, Pierce Pipe Organs</small>
     </div>
-    <div class="col-md-2">
+    <div class="col-4 col-md-2">
         <div class="form-group">
-            <button type="button" class="btn btn-primary" id="search">Search</button>
+            <button class="btn btn-primary" id="search">Search</button>
         </div>
     </div>
 </div>
 <div class="row">
-    <div id="loading" class="text-center" style="display: none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
-    <div class="col-md-12">
+    <div class="col-md-12 mt-3">
         <div id="results"></div>
+    </div>
+</div>
+<div id="loading" class="text-center" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
     </div>
 </div>
 {% endblock %}

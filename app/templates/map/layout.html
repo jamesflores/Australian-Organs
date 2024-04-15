@@ -55,7 +55,7 @@
                         <a class="nav-link" href="{% url 'index' %}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'search' %}">Find</a>
+                        <a class="nav-link" href="{% url 'search' %}">Search</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="https://jamesfloresorganist.com/about/" target="_blank">About</a>
@@ -64,13 +64,6 @@
                         <a class="nav-link" href="https://jamesfloresorganist.com/contact/" target="_blank">Contact</a>
                     </li>
                 </ul>
-                {% if request.resolver_match.view_name == 'index' %}
-                    <form class="d-flex ms-auto">
-                        <div style="position: relative; z-index: 2000;">
-                            <input id="search-box" type="text" placeholder="Search map location" class="form-control">
-                        </div>
-                    </form>
-                {% endif %}
             </div>
         </div>
     </nav>
