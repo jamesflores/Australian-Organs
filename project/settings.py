@@ -167,7 +167,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Load environment variables
 
-OHTA_API_URL = os.getenv('OHTA_API_URL')
+ORGAN_API_URL = os.getenv('ORGAN_API_URL')
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
 GOOGLE_MAPS_SIGNING_SECRET = os.getenv('GOOGLE_MAPS_SIGNING_SECRET')
 
