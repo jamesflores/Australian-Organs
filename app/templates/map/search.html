@@ -66,6 +66,7 @@
     // search on button click or enter key
     $(document).ready(function() {
         $("#search").click(function() {
+            clearResults();
             var query = $("#q").val();
             var url = "https://api.australianorgans.com.au/search/?q=" + query;
             performSearch(url);
@@ -73,6 +74,7 @@
     
         $("#q").keydown(function(event) {
             if (event.key === 'Enter' && !$("#search").prop('disabled')) {
+                clearResults();
                 $("#search").click();
             }
         });
