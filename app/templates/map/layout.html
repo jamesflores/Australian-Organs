@@ -27,8 +27,6 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/appleicon.png' %}" />
     <meta name="apple-mobile-web-app-title" content="Organs" />
     <link rel="stylesheet" href="{% static 'style.css' %}">
-    <script src="{% static 'map.js' %}"></script>
-    <script async src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&loading=async&callback=initMap&libraries=places"></script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-NDK7CM544R"></script>
     <script>
@@ -57,17 +55,22 @@
                         <a class="nav-link" href="{% url 'index' %}">Home</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'search' %}">Find</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="https://jamesfloresorganist.com/about/" target="_blank">About</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="https://jamesfloresorganist.com/contact/" target="_blank">Contact</a>
                     </li>
                 </ul>
-                <form class="d-flex ms-auto">
-                    <div style="position: relative; z-index: 2000;">
-                        <input id="search-box" type="text" placeholder="Search location" class="form-control">
-                    </div>
-                </form>
+                {% if request.resolver_match.view_name == 'index' %}
+                    <form class="d-flex ms-auto">
+                        <div style="position: relative; z-index: 2000;">
+                            <input id="search-box" type="text" placeholder="Search map location" class="form-control">
+                        </div>
+                    </form>
+                {% endif %}
             </div>
         </div>
     </nav>

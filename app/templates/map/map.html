@@ -1,25 +1,30 @@
 {% extends "map/layout.html" %}
 {% load static %}
+ 
+{% block script%}
+<script src="{% static 'map.js' %}"></script>
+<script async src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&loading=async&callback=initMap&libraries=places"></script>
+{% endblock %}
 
 {% block content %}
-    <h1 class="mt-5">Australian Organs</h1>
-    <div class="row">
-        <div class="col-md-4">
-            <p>
-                This is an interactive map that displays information on organs in Australia. 
-                The data is sourced from the <a href="https://ohta.org.au" target="_blank">Organ Historical Trust of Australia</a> (OHTA) and is updated regularly by James Flores.
-            </p>
-            <p>
-                The OHTA web pages are a valuable resource for organ enthusiasts, and this map is intended to make it easier to explore the organs in Australia.
-                In order to make this possible, an <a href="https://api.australianorgans.com.au/swagger" target="_blank">unofficial API</a> has been created and, for now, is freely available to use.
-            </p>
-            <p>
-                For any updates or corrections to the data, please contact James Flores at <a href="mailto:james@jamesflores.net">james@jamesflores.net</a>
-            </p>
-        </div>
-        <div class="col-md-8">
-            <div id="map" class="mt-3" style="height: 800px;"></div>
-            <p class="text-center">Click and drag the map to explore organs in Australia.<br>Clicking on the organ name will direct you to the organ's OHTA page.</p>
-        </div>
+<h1 class="mt-5">Australian Organs</h1>
+<div class="row">
+    <div class="col-md-4">
+        <p>
+            This is an interactive map that displays information on organs in Australia. 
+            The data is sourced from the <a href="https://ohta.org.au" target="_blank">Organ Historical Trust of Australia</a> (OHTA) and is updated regularly by James Flores.
+        </p>
+        <p>
+            The OHTA web pages are a valuable resource for organ enthusiasts, and this map is intended to make it easier to explore the organs in Australia.
+            In order to make this possible, an <a href="https://api.australianorgans.com.au/swagger" target="_blank">unofficial API</a> has been created and, for now, is freely available to use.
+        </p>
+        <p>
+            For any updates or corrections to the data, please contact James Flores at <a href="mailto:james@jamesflores.net">james@jamesflores.net</a>
+        </p>
     </div>
+    <div class="col-md-8">
+        <div id="map" class="mt-3" style="height: 800px;"></div>
+        <p class="text-center">Click and drag the map to explore organs in Australia.<br>Clicking on the organ name will direct you to the organ's OHTA page.</p>
+    </div>
+</div>
 {% endblock %}
