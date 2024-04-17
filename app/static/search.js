@@ -29,9 +29,19 @@ function performSearch(url) {
                 var cardBody = $('<div class="card-body"></div>');
                 var cardContent = '';
                 
+                var location = '';
+                if (item.address)
+                    location = `${item.address}, `;
+                if (item.city)
+                    location += `${item.city}, `;
+                if (item.state)
+                    location += `${item.state} `;
+                if (item.postcode)
+                    location += `${item.postcode}`;
+
                 cardContent += '<h5 class="card-title"><a href="' + item.url + '" target="_blank">' + item.name + '</a></h5>';
                 cardContent += '<p class="card-text"><small class="text-muted">' + item.builder + '</small></p>';
-                cardContent += '<p class="card-text">' + item.address + ', ' + item.city + ' ' + item.state + ', ' + item.postcode + '</p>';
+                cardContent += `<p class="card-text">${location}</p>`;
                 cardContent += '<p class="card-text">' + item.description + '</p>';
                 
                 cardBody.append(cardContent);
