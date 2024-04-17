@@ -61,6 +61,16 @@ function updateMarkers(map) {
                     clicked: false
                 });
 
+                var location = '';
+                if (organ.address)
+                    location = `${organ.address}, `;
+                if (organ.city)
+                    location += `${organ.city}, `;
+                if (organ.state)
+                    location += `${organ.state} `;
+                if (organ.postcode)
+                    location += `${organ.postcode}`;
+
                 var infoWindow = new google.maps.InfoWindow({
                     content: `
                         <div class="row">
@@ -74,7 +84,7 @@ function updateMarkers(map) {
                                 <a href="${organ.url}" target="_blank">
                                     <h5>${organ.name}</h5>
                                 </a>
-                                <p>${organ.address}, ${organ.city}, ${organ.state} ${organ.postcode}</p>
+                                <p>${location}</p>
                                 <p>${organ.description}</p>
                             </div>
                         </div>
