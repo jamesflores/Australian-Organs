@@ -7,3 +7,4 @@ project/__pycache__
 staticfiles
 app/management/commands/__pycache__
 client_secret_389969174751-2sitpcigl9km6k76l61lc3mva10k25hj.apps.googleusercontent.com.json
+.idea

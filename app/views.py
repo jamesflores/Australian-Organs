@@ -9,8 +9,16 @@ def index(request):
         'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY,
         'domain': request.scheme + '://' + get_current_site(request).domain
     }
-    return render(request, 'map/map.html', context)
+    return render(request, 'map/home.html', context)
 
+
+def map(request):
+    context = {
+        'ORGAN_API_URL': settings.ORGAN_API_URL,
+        'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY,
+        'domain': request.scheme + '://' + get_current_site(request).domain
+    }
+    return render(request, 'map/map.html', context)
 
 def search(request):
     context = {

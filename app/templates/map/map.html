@@ -1,7 +1,7 @@
 {% extends "map/layout.html" %}
 {% load static %}
  
-{% block script%}
+{% block script %}
 <script src="{% static 'map.js' %}"></script>
 <script async src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&loading=async&callback=initMap&libraries=places"></script>
 {% endblock %}
@@ -11,15 +11,15 @@
 <div class="row">
     <div class="col-md-4">
         <p>
-            This is an interactive map that displays information on organs in Australia. 
-            The data is sourced from the <a href="https://ohta.org.au" target="_blank">Organ Historical Trust of Australia</a> (OHTA) and is updated regularly by James Flores.
+            This is an interactive Google map that displays information on organs in Australia. 
+            The data is sourced from the <a href="https://ohta.org.au" target="_blank">Organ Historical Trust of Australia (OHTA)</a>, <a href="https://sydneyorgan.com" target="_blank">Organ Music Society of Sydney (OMSS)</a> and the <a href="http://www.oswa.org.au/" target="_blank">Organ Society of Western Australia (OSWA)</a>.
         </p>
         <p>
-            The OHTA web pages are a valuable resource for organ enthusiasts, and this website is intended to make it easier to explore the organs in Australia.
+            The organ society web pages are valuable resources for organ enthusiasts, and this map is intended to make it easier to explore the organs in Australia.
             In order to make this possible, an <a href="https://api.australianorgans.com.au/swagger" target="_blank">unofficial API</a> has been created and, for now, is freely available to use.
         </p>
         <p>
-            For any updates or corrections to the data, please contact James Flores at <a href="mailto:james@jamesflores.net">james@jamesflores.net</a>
+            For any updates or corrections to the data, please contact me, James Flores, at <a href="mailto:james@jamesflores.net">james@jamesflores.net</a>
         </p>
         <small>Map search:</small>
         <form class="d-flex ms-auto">

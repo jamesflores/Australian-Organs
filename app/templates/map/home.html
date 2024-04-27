@@ -1,0 +1,37 @@
+{% extends "map/layout.html" %}
+{% load static %}
+
+{% block content %}
+<h1 class="mt-5">Australian Organs</h1>
+<div class="row">
+    <div class="col-md-12">
+        <p>Welcome to Australian Organs, a digital catalog crafted by me, James Flores, to promote the history of organs across Australia.</p>
+        <p>This initiative brings together detailed data from the <a href="https://ohta.org.au/" target="_blank">Organ Historical Trust of Australia (OHTA)</a>, <a href="https://sydneyorgan.com" target="_blank">Organ Music Society of Sydney (OMSS)</a> and the <a href="http://www.oswa.org.au/" target="_blank">Organ Society of Western Australia (OSWA)</a> into a user-friendly platform that combines intuitive search functionalities with interactive maps.</p>
+        <p>As an <a href="https://jamesfloresorganist.com" target="_blank">organist</a> and <a href="https://jamesflores.net" target="_blank">IT professional</a>, my goal is to foster a vibrant community where users can contribute their own insights and experiences to each organ's profile. Future features will include personalised bookmarking of favourite organs and a user contributed section to each organ. This enables up-to-date information on things like access, condition and anything else of relevance.</p>
+        <p>For suggestions, corrections and any other information, please contact me at <a href="mailto:james@jamesflores.net">james@jamesflores.net</a></p>
+        <p>Now, go on and enjoy exploring all the organs on Australian Organs 🇦🇺</p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <a href="{% url 'search' %}"><img src="{% static 'images/search.png' %}" class="card-img-top" href="{% url 'search' %}" alt="Search Organs"></a>
+            <div class="card-body">
+                <h5 class="card-title">Search for an organ</h5>
+                <p class="card-text">Search the database of organs just like you would do a Google search. Easily locate the organ you're looking for, or, browse all the organs in our database.</p>
+                <a href="{% url 'search' %}" class="btn btn-primary">Search</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <a  href="{% url 'map' %}"><img src="{% static 'images/map.png' %}" class="card-img-top" alt="Organ Map"></a>
+            <div class="card-body">
+                <h5 class="card-title">Browse organs with map</h5>
+                <p class="card-text">The Google map you've always wanted—with pins for every organ in Australia. Browse by dragging the map around and click on a pin to view more details on the organ.</p>
+                <a href="{%  url 'map' %}" class="btn btn-primary">OPEN MAP</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
