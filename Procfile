@@ -1,3 +1,3 @@
 web: gunicorn project.wsgi --log-file -
 worker: python manage.py qcluster
-release: bash release.sh
+release: python manage.py migrate --noinput
