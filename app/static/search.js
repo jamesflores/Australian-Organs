@@ -39,10 +39,10 @@ function performSearch(url) {
                 if (item.postcode)
                     location += `${item.postcode}`;
 
-                cardContent += '<h5 class="card-title"><a href="' + item.url + '" target="_blank">' + item.name + '</a></h5>';
-                cardContent += '<p class="card-text"><small class="text-muted">' + item.builder + '</small></p>';
+                cardContent += `<h5 class="card-title"><a href="https://australianorgans.com.au/r/?url=${item.url}" target="_blank">${item.name}</a></h5>`;
+                cardContent += `<p class="card-text"><small class="text-muted">${item.builder}</small></p>`;
                 cardContent += `<p class="card-text">${location}</p>`;
-                cardContent += '<p class="card-text">' + item.description + '</p>';
+                cardContent += `<p class="card-text">${item.description}</p>`;
                 
                 cardBody.append(cardContent);
                 cardBodyCol.append(cardBody);
