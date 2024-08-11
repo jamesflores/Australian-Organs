@@ -1,12 +1,81 @@
 {% extends "map/layout.html" %}
 {% load static %}
 
+{% block script %}
+<script>
+    function removeBookmark(organId, linkElement) {
+        if (!confirm("Are you sure you want to remove this bookmark?")) {
+            return;
+        }
+        $.ajax({
+            url: '/api/bookmark',
+            method: 'GET',
+            data: { organ_id: organId },
+            success: function(response) {
+                if (response.message === 'Bookmark removed') {
+                    // Remove the entire organ card from the page
+                    $('#organ-card-' + organId).remove();
+                    
+                    // Check if there are any remaining bookmarks
+                    if ($('#bookmarked-organs .card').length === 0) {
+                        // If no bookmarks left, show the "no bookmarks" message
+                        $('#no-bookmarks-message').show();
+                    }
+                } else {
+                    alert("Unexpected response. Please try again.");
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error removing bookmark:", xhr.responseJSON ? xhr.responseJSON.error : error);
+                alert("There was an error removing the bookmark. Please try again.");
+            }
+        });
+    }
+</script>
+{% endblock %}
+
 {% block content %}
 <h1 class="mt-5">Australian Organs</h1>
-<h2>User Area</h2>
 <div class="row">
     <div class="col-md-12">
         <p>Logged in as {{ request.user }}</p>
     </div>
 </div>
+<h2 class="mt-3">Your Saved Organs</h2>
+<div id="bookmarked-organs">
+    {% for organ in organs %}
+    <div class="card mb-3" id="organ-card-{{ organ.id }}">
+        <div class="row g-0">
+            <div class="col-md-4">
+                {% if organ.main_image %}
+                    <img src="{{ organ.main_image }}" class="img-fluid rounded-start" alt="{{ organ.name }}">
+                {% else %}
+                    <div class="img-fluid rounded-start" style="background: #f0f0f0; height: 150px;"></div>
+                {% endif %}
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="{% url 'index' %}r?url={{ organ.url|urlencode }}" target="_blank">{{ organ.name }}</a>
+                    </h5>
+                    <p class="card-text"><small class="text-muted">{{ organ.builder }}</small></p>
+                    <p class="card-text">
+                        {% if organ.address %}{{ organ.address }}, {% endif %}
+                        {% if organ.city %}{{ organ.city }}, {% endif %}
+                        {% if organ.state %}{{ organ.state }} {% endif %}
+                        {% if organ.postcode %}{{ organ.postcode }}{% endif %}
+                    </p>
+                    <p class="card-text">{{ organ.description }}</p>
+                    <div class="bookmark-container" style="position: absolute; bottom: 10px; right: 10px;">
+                        <a href="#" class="bookmark-link bookmarked" data-organ-id="{{ organ.id }}" onclick="removeBookmark({{ organ.id }}, this); return false;">
+                            <span class="bookmark-text">Remove</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<p id="no-bookmarks-message" style="display: {% if organs %}none{% else %}block{% endif %};">You haven't bookmarked any organs yet.</p>
 {% endblock %}

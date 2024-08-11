@@ -1,17 +1,23 @@
+import json
+from operator import itemgetter
+from django.forms import ValidationError
 from django.shortcuts import render
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.urls import reverse
 from django_ratelimit.decorators import ratelimit
 from django.contrib.auth import login, logout
 from django.core.mail import send_mail
+from django.core.validators import validate_email
 from django.conf import settings
-from .models import CustomUser, MagicLink, URLRedirect
+import requests
+from .models import Bookmark, CustomUser, MagicLink, URLRedirect
 from django.utils import timezone
 from urllib.parse import unquote
 from django.contrib.auth.decorators import login_required
+from django_q.tasks import async_task
 
 
 def index(request):
@@ -41,7 +47,21 @@ def search(request):
 
 @login_required(login_url='/login/')
 def app_view(request):
-    return render(request, 'map/app.html')
+    bookmarks = Bookmark.objects.filter(user=request.user)
+    organs = []
+
+    for bookmark in bookmarks:
+        # Fetch organ details from the API
+        response = requests.get(f'{settings.ORGAN_API_URL}/organ/{bookmark.organ_id}/')
+        if response.status_code == 200:
+            organ_data = response.json()
+            if organ_data['results']:
+                organs.append(organ_data['results'][0])
+
+    # Sort the organs list by name
+    sorted_organs = sorted(organs, key=itemgetter('name'))
+
+    return render(request, 'map/app.html', {'organs': sorted_organs})
 
 
 @ratelimit(key='ip', rate='10/m')   # Limit to 10 requests per minute per IP address
@@ -53,14 +73,36 @@ def redirect(request):
     return HttpResponseRedirect(url)
 
 
+@ratelimit(key='ip', rate='10/m')   # Limit to 10 requests per minute per IP address
 def request_magic_link(request):
     if request.method == 'POST':
         email = request.POST.get('email')
+        error = None
+
+        # Sanity check email
+        if not email:
+            error = 'Email is required'
+        else:
+            # Additional email validation
+            try:
+                validate_email(email)
+                # Check for common disposable email domains
+                disposable_domains = ['tempmail.com', 'throwawaymail.com', 'mailinator.com']
+                domain = email.split('@')[-1]
+                if domain in disposable_domains:
+                    error = 'Please use a non-disposable email address'
+            except ValidationError:
+                error = 'Please enter a valid email address'
+
+        if error:
+            return render(request, 'map/request_magic_link.html', {'error': error})
+        
         user, created = CustomUser.objects.get_or_create(email=email)
         magic_link = MagicLink.objects.create(user=user)
         
-        # send email with magic link
-        send_mail(
+        # Send email with magic link
+        async_task(
+            'django.core.mail.send_mail',
             'Your magic link to log into Australian Organs',
             f'Click here to log in: {request.build_absolute_uri("/login/")}?token={magic_link.token}',
             settings.DEFAULT_FROM_EMAIL,
@@ -98,3 +140,37 @@ def login_with_magic_link(request):
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse('index'))
+
+
+@login_required(login_url='/login/')
+def bookmark_organ(request):
+    organ_id = request.GET.get('organ_id')
+    if not organ_id:
+        return JsonResponse({'error': 'organ_id is required'}, status=400)
+    
+    try:
+        bookmark, created = Bookmark.objects.get_or_create(user=request.user, organ_id=organ_id)
+        
+        if created:
+            return JsonResponse({'message': 'Bookmark added'}, status=201)
+        else:
+            bookmark.delete()
+            return JsonResponse({'message': 'Bookmark removed'}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required(login_url='/login/')
+def check_bookmark(request):
+    organ_id = request.GET.get('organ_id')
+    if not organ_id:
+        return JsonResponse({'error': 'organ_id is required'}, status=400)
+    
+    try:
+        is_bookmarked = Bookmark.objects.filter(user=request.user, organ_id=organ_id).exists()
+        return JsonResponse({
+            'is_bookmarked': is_bookmarked,
+            'text': '★ Saved' if is_bookmarked else '☆ Save organ to your list'
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)

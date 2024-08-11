@@ -45,11 +45,52 @@ function performSearch(url) {
                 cardContent += `<p class="card-text">${item.description}</p>`;
                 
                 cardBody.append(cardContent);
+
+                // Add bookmark icon and text
+                var bookmarkHtml;
+                if (window.isUserAuthenticated) {
+                    bookmarkHtml = `
+                        <div class="bookmark-container" style="position: absolute; bottom: 10px; right: 10px;">
+                            <a href="#" class="bookmark-link" data-organ-id="${item.id}">
+                                <span class="bookmark-text">☆ Save organ to your list</span>
+                            </a>
+                        </div>`;
+                    cardBody.append(bookmarkHtml);
+
+                    // Check if the organ is bookmarked
+                    $.get('/api/check_bookmark/', { organ_id: item.id })
+                        .done(function(data) {
+                            var bookmarkLink = cardBody.find('.bookmark-link');
+                            bookmarkLink.find('.bookmark-text').text(data.text);
+                            if (data.is_bookmarked) {
+                                bookmarkLink.addClass('bookmarked');
+                            }
+                        })
+                        .fail(function(jqXHR, textStatus, errorThrown) {
+                            console.error("Error checking bookmark status:", errorThrown);
+                        });
+                } else {
+                    bookmarkHtml = `
+                        <div class="bookmark-container" style="position: absolute; bottom: 10px; right: 10px;">
+                            <a href="${window.registerUrl}" class="register-link">
+                                ☆ Register to save organs
+                            </a>
+                        </div>`;
+                    cardBody.append(bookmarkHtml);
+                }
+
                 cardBodyCol.append(cardBody);
                 
                 cardRow.append(cardImgCol).append(cardBodyCol);
                 card.append(cardRow);
                 $("#results").append(card);
+            });
+
+            // Add click event handler for bookmark links
+            $(".bookmark-link").click(function(e) {
+                e.preventDefault();
+                var organId = $(this).data('organ-id');
+                bookmarkOrgan(organId, $(this));
             });
 
             nextPageUrl = response.next;

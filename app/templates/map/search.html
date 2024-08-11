@@ -3,6 +3,36 @@
 
 {% block script %}
 <script src="{% static 'search.js' %}"></script>
+<script>
+    window.isUserAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+    window.loginUrl = "{% url 'login' %}"; 
+
+    function bookmarkOrgan(organId, linkElement) {
+        if (!window.isUserAuthenticated) {
+            window.location.href = window.loginUrl;
+            return;
+        }
+
+        $.ajax({
+            url: '/api/bookmark',
+            method: 'GET',
+            data: { organ_id: organId },
+            success: function(response) {
+                if (response.message === 'Bookmark added') {
+                    linkElement.html('★ Saved');
+                    linkElement.addClass('bookmarked');
+                } else if (response.message === 'Bookmark removed') {
+                    linkElement.html('☆ Save organ to your list');
+                    linkElement.removeClass('bookmarked');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error bookmarking organ:", xhr.responseJSON ? xhr.responseJSON.error : error);
+                alert("There was an error saving the bookmark. Please try again.");
+            }
+        });
+    }
+</script>
 {% endblock %}
 
 {% block content %}
