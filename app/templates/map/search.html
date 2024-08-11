@@ -6,6 +6,7 @@
 <script>
     window.isUserAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
     window.loginUrl = "{% url 'login' %}"; 
+    window.registerUrl = window.loginUrl;
 
     function bookmarkOrgan(organId, linkElement) {
         if (!window.isUserAuthenticated) {
