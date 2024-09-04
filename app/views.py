@@ -45,6 +45,58 @@ def search(request):
     return render(request, 'map/search.html', context)
 
 
+def organ_page(request, organ_id):
+    # Fetch organ page from the API
+    response = requests.get(f'{settings.ORGAN_API_URL}/organ/render/{organ_id}/')
+    if response.status_code == 200:
+        organ_data = response.json()
+        try:
+            page_data = organ_data[0]['html']
+        except Exception as e:
+            page_data = "No data available"
+    else:
+        return render(request, 'map/organ_detail.html', {'page_data': "No data available"})
+
+    # Fetch organ details from the API
+    response = requests.get(f'{settings.ORGAN_API_URL}/organ/{organ_id}/')
+    if response.status_code == 200:
+        organ_data = response.json()
+        try:
+            organ_name = organ_data['results'][0]['name']
+            organ_description = organ_data['results'][0]['description']
+            organ_address = organ_data['results'][0]['address']
+            organ_state = organ_data['results'][0]['state']
+            organ_city = organ_data['results'][0]['city']
+            organ_postcode = organ_data['results'][0]['postcode']
+            organ_builder = organ_data['results'][0]['builder']
+            organ_main_image = organ_data['results'][0]['main_image']
+            organ_lat = organ_data['results'][0]['latitude']
+            organ_lon = organ_data['results'][0]['longitude']
+        except Exception as e:
+            return render(request, 'map/organ_detail.html', {'page_data': "No data available"})
+    else:   
+        return render(request, 'map/organ_detail.html', {'page_data': "No data available"})
+    
+    context = {
+        'page_data': page_data,
+        'organ_id': organ_id,
+        'organ_name': organ_name,
+        'organ_description': organ_description,
+        'organ_address': organ_address,
+        'organ_state': organ_state,
+        'organ_city': organ_city,
+        'organ_postcode': organ_postcode,
+        'organ_builder': organ_builder,
+        'organ_main_image': organ_main_image,
+        'organ_lat': organ_lat,
+        'organ_lon': organ_lon,
+        'url': request.build_absolute_uri(),
+    }
+
+    # Render the organ page
+    return render(request, 'map/organ_detail.html', context)
+
+
 @login_required(login_url='/login/')
 def app_view(request):
     bookmarks = Bookmark.objects.filter(user=request.user)
@@ -68,9 +120,17 @@ def app_view(request):
 def redirect(request):
     if getattr(request, 'limited', False):
        return HttpResponse('Too many requests', status=429)
+    
     url = unquote(request.GET.get('url', ''))
+    organ_id = request.GET.get('organ_id', '')
+
+    if organ_id:  # attempt to redirect to the OrganPage view
+        response = requests.get(f'{settings.ORGAN_API_URL}/organ/render/{organ_id}/')
+        if response.status_code == 200:
+            return HttpResponseRedirect(reverse('organ', args=[organ_id]))
+
     URLRedirect.hit(url)
-    return HttpResponseRedirect(url)
+    return HttpResponseRedirect(url)  # Redirect to the URL
 
 
 @ratelimit(key='ip', rate='10/m')   # Limit to 10 requests per minute per IP address
