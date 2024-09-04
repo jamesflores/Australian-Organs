@@ -46,7 +46,7 @@
     {% for organ in organs %}
     <div class="col" id="organ-card-{{ organ.id }}">
         <div class="card h-100">
-            <a href="{% url 'index' %}r?url={{ organ.url|urlencode }}" target="_blank">
+            <a href="{% url 'index' %}r?url={{ organ.url|urlencode }}&organ_id={{ organ.id }}" target="_blank">
                 {% if organ.main_image %}
                     <img src="{{ organ.main_image }}" class="card-img-top" alt="{{ organ.name }}" style="height: 200px; object-fit: cover;">
                 {% else %}
@@ -55,7 +55,7 @@
             </a>
             <div class="card-body d-flex flex-column">
                 <h5 class="card-title">
-                    <a href="{% url 'index' %}r?url={{ organ.url|urlencode }}" target="_blank">{{ organ.name }}</a>
+                    <a href="{% url 'index' %}r?url={{ organ.url|urlencode }}&organ_id={{ organ.id }}" target="_blank">{{ organ.name }}</a>
                 </h5>
                 <p class="card-text">
                     <small>{{ organ.builder }}</small><br>
