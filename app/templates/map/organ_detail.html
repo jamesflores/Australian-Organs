@@ -1,0 +1,26 @@
+{% extends "map/layout.html" %}
+{% load static %}
+
+{% block meta %}
+  <title>{% block title %}{{ organ_name }} | Australian Organs | An interactive resource by James Flores{% endblock %}</title>
+  <meta name="description" content="{{ organ_description }}" />
+  <link rel="canonical" href="{{ url }}" />
+  <meta property="og:locale" content="en_AU" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="{{ organ_name }} | Australian Organs | An interactive resource by James Flores" />
+  <meta property="og:description" content="{{ organ_description }}" />
+  <meta property="og:url" content="{{ url }}" />
+  <meta property="og:site_name" content="Australian Organs | An interactive resource by James Flores" />
+  <meta property="og:image" content="{{ organ_main_image }}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="{{ organ_main_image }}" />
+{% endblock %}
+
+{% block content %}
+<div class="text-center">
+  <h1 class="mt-5 mb-3">Australian Organs</h1>
+</div>
+
+{{ page_data|safe }}
+
+{% endblock %}
