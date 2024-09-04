@@ -128,7 +128,7 @@ def redirect(request):
 
     if organ_id:  # attempt to redirect to the OrganPage view
         response = requests.get(f'{settings.ORGAN_API_URL}/organ/render/{organ_id}/')
-        if response.status_code == 200:
+        if response.status_code == 200 and response.json() != []:
             return HttpResponseRedirect(reverse('organ', args=[organ_id]))
 
     URLRedirect.hit(url)
