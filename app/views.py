@@ -72,6 +72,7 @@ def organ_page(request, organ_id):
             organ_main_image = organ_data['results'][0]['main_image']
             organ_lat = organ_data['results'][0]['latitude']
             organ_lon = organ_data['results'][0]['longitude']
+            organ_url = organ_data['results'][0]['url']
         except Exception as e:
             return render(request, 'map/organ_detail.html', {'page_data': "No data available"})
     else:   
@@ -91,6 +92,7 @@ def organ_page(request, organ_id):
         'organ_lat': organ_lat,
         'organ_lon': organ_lon,
         'url': request.build_absolute_uri(),
+        'source_url': organ_url,
     }
 
     # Render the organ page
