@@ -53,9 +53,9 @@ def organ_page(request, organ_id):
         try:
             page_data = organ_data[0]['html']
         except Exception as e:
-            page_data = "No data available"
+            return render(request, 'map/organ_detail.html', {'page_data': None })
     else:
-        return render(request, 'map/organ_detail.html', {'page_data': "No data available"})
+        return render(request, 'map/organ_detail.html', {'page_data': None })
 
     # Fetch organ details from the API
     response = requests.get(f'{settings.ORGAN_API_URL}/organ/{organ_id}/')
@@ -74,10 +74,16 @@ def organ_page(request, organ_id):
             organ_lon = organ_data['results'][0]['longitude']
             organ_url = organ_data['results'][0]['url']
         except Exception as e:
-            return render(request, 'map/organ_detail.html', {'page_data': "No data available"})
+            return render(request, 'map/organ_detail.html', {'page_data': None })
     else:   
-        return render(request, 'map/organ_detail.html', {'page_data': "No data available"})
+        return render(request, 'map/organ_detail.html', {'page_data': None })
     
+    is_bookmarked = False
+    if request.user.is_authenticated:
+        # check to see if the organ is bookmarked
+        if Bookmark.objects.filter(user=request.user, organ_id=organ_id).exists():
+            is_bookmarked = True
+
     context = {
         'page_data': page_data,
         'organ_id': organ_id,
@@ -93,6 +99,7 @@ def organ_page(request, organ_id):
         'organ_lon': organ_lon,
         'url': request.build_absolute_uri(),
         'source_url': organ_url,
+        'is_bookmarked': is_bookmarked,
     }
 
     # Render the organ page
