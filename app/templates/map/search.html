@@ -6,7 +6,9 @@
     window.isUserAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
     window.loginUrl = "{% url 'login' %}"; 
     window.registerUrl = window.loginUrl;
-
+    
+    var apiUrl = "https://api.australianorgans.com.au";
+    var redirectUrl = "{% url 'redirect' %}";
     var nextPageUrl = null;
 
     function clearResults() {
@@ -31,7 +33,7 @@
                     var cardRow = $('<div class="row g-0"></div>');  // Bootstrap grid row
                     
                     var cardImgCol = $('<div class="col-md-4"></div>');  // Column for the image
-                    var imgHtml = item.main_image ? '<img src="' + item.main_image + '" class="img-fluid rounded-start" alt="' + item.name +'">' : '<div class="img-fluid rounded-start" style="background: #f0f0f0; height: 150px;"></div>';
+                    var imgHtml = item.main_image ? `<a href="${redirectUrl}?url=${item.url}&organ_id=${item.id}" target="_blank">` + '<img src="' + item.main_image + '" class="img-fluid rounded-start" alt="' + item.name +'"></a>' : '<div class="img-fluid rounded-start" style="background: #f0f0f0; height: 150px;"></div>';
                     cardImgCol.append(imgHtml);
 
                     var cardBodyCol = $('<div class="col-md-8"></div>');  // Column for the text
@@ -48,7 +50,7 @@
                     if (item.postcode)
                         location += `${item.postcode}`;
 
-                    cardContent += `<h5 class="card-title"><a href="https://australianorgans.com.au/r/?url=${item.url}&organ_id=${item.id}" target="_blank">${item.name}</a></h5>`;
+                    cardContent += `<h5 class="card-title"><a href="${redirectUrl}?url=${item.url}&organ_id=${item.id}" target="_blank">${item.name}</a></h5>`;
                     cardContent += `<p class="card-text"><small class="text-muted">${item.builder}</small></p>`;
                     cardContent += `<p class="card-text">${location}</p>`;
                     cardContent += `<p class="card-text">${item.description}</p>`;
@@ -115,7 +117,7 @@
     }
 
     $(document).ready(function() {
-        var url = "https://api.australianorgans.com.au";
+        var url = apiUrl;
 
         $("#search").click(function() {
             clearResults();
