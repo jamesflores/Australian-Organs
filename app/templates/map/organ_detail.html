@@ -16,15 +16,61 @@
   <meta name="twitter:image" content="{{ organ_main_image }}" />
 {% endblock %}
 
+{% block script %}
+<script>
+  window.isUserAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+  window.loginUrl = "{% url 'login' %}"; 
+  window.registerUrl = window.loginUrl;
+
+  function bookmarkOrgan(organId, linkElement) {
+    if (!window.isUserAuthenticated) {
+        window.location.href = window.loginUrl;
+        return;
+    }
+
+    $.ajax({
+        url: '/api/bookmark',
+        method: 'GET',
+        data: { organ_id: organId },
+        success: function(response) {
+            if (response.message === 'Bookmark added') {
+                linkElement.html('★ Saved');
+                linkElement.addClass('bookmarked');
+            } else if (response.message === 'Bookmark removed') {
+                linkElement.html('☆ Save organ to your list');
+                linkElement.removeClass('bookmarked');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error bookmarking organ:", xhr.responseJSON ? xhr.responseJSON.error : error);
+            alert("There was an error saving the bookmark. Please try again.");
+        }
+    });
+  }
+</script>
+{% endblock %}
+
 {% block content %}
-<div class="text-center">
-  <h1 class="mt-5 mb-3">Australian Organs</h1>
-</div>
 
 {{ page_data|safe }}
 
 <div class="text-center">
-  <a href="{{ source_url }}" target="_blank" class="btn btn-outline-primary">View original content</a>
+  {% if user.is_authenticated %}
+      <a href="#" class="bookmark-link" data-organ-id="{{ organ_id }}" onclick="bookmarkOrgan({{ organ_id }}, $(this)); return false;">
+          <span class="bookmark-text">☆ Save organ to your list</span>
+      </a>
+  {% else %}
+    <div class="container">
+      <a href="{% url 'login' %}" class="register-link">
+          ☆ Register to save organs
+      </a>
+  {% endif %}
 </div>
+
+{% if source_url %}
+  <div class="text-center mt-3">
+    <a href="{{ source_url }}" target="_blank" class="btn btn-outline-primary">View original content</a>
+  </div>
+{% endif %}  
 
 {% endblock %}
