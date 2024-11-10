@@ -3,19 +3,15 @@ window.initMap = function() {
         zoom: 10,
         center: {lat: -33.8688, lng: 151.2093}  // Sydney: default
     });
-    getUserLocation(map, updateMarkers);  // center the map on the user's location
 
-    map.addListener('dragend', function() {  // update markers when the map is dragged
-        updateMarkers(map);
-    });
-    
-    updateMarkers(map);  // initial markers
+    getUserLocation(map);  // Attempt to center the map on the user's location if available
+    loadAllMarkers(map);   // Load all markers at once
 
-    // Create the search box and link it the map
+    // Set up search box functionality
     var input = document.getElementById('search-box');
     input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {  // prevent the form from being submitted when the user presses Enter
-            e.preventDefault();  
+        if (e.key === 'Enter') {
+            e.preventDefault();
             return false;
         }
     });
@@ -25,100 +21,95 @@ window.initMap = function() {
         if (places.length == 0) {
             return;
         }
-    
-        // For each place, get the icon, name and location.
+
         places.forEach(function(place) {
             if (!place.geometry) {
                 console.log("Returned place contains no geometry");
                 return;
             }
-            // Set the center of the map to the location of the place
             map.setCenter(place.geometry.location);
         });
-    
+
         map.setZoom(14);
-        updateMarkers(map);
     });
-}
+};
 
-function updateMarkers(map) {
-    var center = map.getCenter();
-    var lat = center.lat();
-    var lon = center.lng();
-    var radius = 50;  // km
+function loadAllMarkers(map) {
+    var currentInfoWindow = null;
+    var page = 1;
+    var pageSize = 50;
 
-    var currentInfoWindow = null;  // Keep track of the currently open info window
-    $.ajax({
-        url: "https://api.australianorgans.com.au/geosearch/",
-        data: {'lat': lat, 'lon': lon, 'radius': radius},
-        dataType: 'json',
-        success: function(data) {
-            data.forEach(function(organ) {
-                var marker = new google.maps.Marker({
-                    position: {lat: organ.latitude, lng: organ.longitude},
-                    map: map,
-                    title: organ.name,
-                    clicked: false
-                });
+    function fetchMarkers() {
+        $.ajax({
+            url: `https://api.australianorgans.com.au/organs/?page=${page}&page_size=${pageSize}`,
+            dataType: 'json',
+            success: function(response) {
+                response.results.forEach(function(organ) {
+                    var marker = new google.maps.Marker({
+                        position: {lat: organ.latitude, lng: organ.longitude},
+                        map: map,
+                        title: organ.name
+                    });
 
-                var location = '';
-                if (organ.address)
-                    location = `${organ.address}, `;
-                if (organ.city)
-                    location += `${organ.city}, `;
-                if (organ.state)
-                    location += `${organ.state} `;
-                if (organ.postcode)
-                    location += `${organ.postcode}`;
+                    var location = '';
+                    if (organ.address) location = `${organ.address}, `;
+                    if (organ.city) location += `${organ.city}, `;
+                    if (organ.state) location += `${organ.state} `;
+                    if (organ.postcode) location += `${organ.postcode}`;
 
-                var infoWindow = new google.maps.InfoWindow({
-                    content: `
-                        <div class="row">
-                            ${organ.main_image ? `
-                            <div class="col-md-4">
-                                <a href="https://australianorgans.com.au/r/?url=${organ.url}" target="_blank">
-                                    <img src="${organ.main_image}" alt="${organ.name}" style="max-width:100%; max-height:100%;" loading="lazy">
-                                </a>
-                            </div>` : ''}
-                            <div class="${organ.main_image ? 'col-md-8' : 'col-md-12'}">
-                                <a href="https://australianorgans.com.au/r/?url=${organ.url}" target="_blank">
-                                    <h5>${organ.name}</h5>
-                                </a>
-                                <p>${location}</p>
-                                <p>${organ.description}</p>
+                    var infoWindow = new google.maps.InfoWindow({
+                        content: `
+                            <div class="row">
+                                ${organ.main_image ? `
+                                <div class="col-md-4">
+                                    <a href="https://australianorgans.com.au/r/?url=${organ.url}" target="_blank">
+                                        <img src="${organ.main_image}" alt="${organ.name}" style="max-width:100%; max-height:100%;" loading="lazy">
+                                    </a>
+                                </div>` : ''}
+                                <div class="${organ.main_image ? 'col-md-8' : 'col-md-12'}">
+                                    <a href="https://australianorgans.com.au/r/?url=${organ.url}" target="_blank">
+                                        <h5>${organ.name}</h5>
+                                    </a>
+                                    <p>${location}</p>
+                                    <p>${organ.description}</p>
+                                </div>
                             </div>
-                        </div>
-                    `
-                });
+                        `
+                    });
 
-                var clicked = false;
-                marker.addListener('mouseover', function() {
-                    // Close the current info window if it's open
-                    if (currentInfoWindow) {
-                        currentInfoWindow.close();
-                    }
-                    
-                    // Open the info window for the current marker
-                    this.clicked = true;
-                    infoWindow.open(map, marker);
+                    marker.addListener('mouseover', function() {
+                        if (currentInfoWindow) {
+                            currentInfoWindow.close();
+                        }
+                        infoWindow.open(map, marker);
+                        currentInfoWindow = infoWindow;
+                    });
 
-                    // Set the current info window to the one that was just opened
-                    currentInfoWindow = infoWindow;
-                });
-                marker.addListener('mouseout', function() {
-                    if (!clicked)
+                    marker.addListener('mouseout', function() {
                         infoWindow.close();
+                    });
+
+                    marker.addListener('click', function() {
+                        infoWindow.open(map, marker); 
+                    });
                 });
-                marker.addListener('click', function() {
-                    clicked = true;
-                    infoWindow.open(map, marker); 
-                });
-            });
-        }
-    });
+
+                // If there's a next page, increment the page number and fetch the next page
+                if (response.next) {
+                    page += 1;
+                    fetchMarkers();
+                }
+            },
+            error: function() {
+                console.error("Failed to load markers from API");
+            }
+        });
+    }
+
+    fetchMarkers();  // Start fetching markers
 }
 
-function getUserLocation(map, updateMarkers) {
+function getUserLocation(map) {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
             var userLocation = {
@@ -126,35 +117,11 @@ function getUserLocation(map, updateMarkers) {
                 lng: position.coords.longitude
             };
 
-            // Reverse geocode the user's location to get the country
-            var geocoder = new google.maps.Geocoder;
-            geocoder.geocode({'location': userLocation}, function(results, status) {
-                if (status === 'OK') {
-                    if (results[0]) {
-                        // Find the country among the address components
-                        var country = results[0].address_components.find(function(component) {
-                            return component.types.includes('country');
-                        });
-
-                        // If the country is Australia, set the map's center to the user's location
-                        // Otherwise, keep the map's center at Sydney
-                        if (country && country.long_name === 'Australia') {
-                            map.setCenter(userLocation);
-                        }
-                    }
-                }
-
-                // Call updateMarkers after the map's center has been set
-                updateMarkers(map);
-            });
+            map.setCenter(userLocation);  // Center the map on user's location
+            map.setZoom(10);               // Zoom in on the user's area
         }, function() {
-            // If the user denies the Geolocation request or it fails for some other reason, do nothing
-            // The map will just stay centered on the default location
-            updateMarkers(map);
+            console.log("Geolocation request denied or failed.");
         });
-    } else {
-        // If Geolocation is not supported by the user's browser, call updateMarkers with the default location
-        updateMarkers(map);
     }
 }
 
