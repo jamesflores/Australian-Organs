@@ -1,0 +1,42 @@
+{% extends "map/layout.html" %}
+{% load static %}
+
+{% block content %}
+<h1 class="mt-5 mb-3">Login with a 6-digit code</h1>
+
+<!-- Display messages -->
+{% if messages %}
+    <div class="row">
+        <div class="col-md-12">
+            {% for message in messages %}
+            <div class="alert {{ message.tags }}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-12">
+        <p>Registering to use this service grants you access to a growing list of personalised features, such as bookmarking your favourite organs.</p>
+        <p>Enter your email to receive a 6-digit login code, then use it to log in below:</p>
+    </div>
+</div>
+
+<form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="form-group">
+                <input type="email" class="form-control" name="email" id="email" placeholder="Enter your email" required autofocus>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary w-100" id="send-code">Send Code</button>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
