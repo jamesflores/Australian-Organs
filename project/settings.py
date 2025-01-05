@@ -15,6 +15,7 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 import sentry_sdk
+from django.contrib.messages import constants as message_constants
 
 
 load_dotenv()
@@ -70,7 +71,7 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -82,6 +83,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'project.wsgi.application'
 
@@ -209,3 +211,24 @@ if os.getenv('SENTRY_DSN'):
         # Disable profiling
         profiles_sample_rate=0.0,
     )
+
+# Django messages tags
+
+MESSAGE_TAGS = {
+    message_constants.DEBUG: 'alert-debug',
+    message_constants.INFO: 'alert-info',
+    message_constants.SUCCESS: 'alert-success',
+    message_constants.WARNING: 'alert-warning',
+    message_constants.ERROR: 'alert-danger',
+}
+
+
+# Session settings
+
+SESSION_COOKIE_AGE = 300  # 5 minutes in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+
+# Application settings
+
+CODE_EXPIRY_MINUTES = 10

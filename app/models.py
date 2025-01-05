@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
-import uuid
 from django.utils import timezone
 
 
@@ -36,20 +35,40 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.email
     
 
-class MagicLink(models.Model):
+class LoginCode(models.Model):    
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    code = models.CharField(max_length=6, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'code']),
+            models.Index(fields=['expires_at']),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.expires_at:
-            self.expires_at = timezone.now() + timezone.timedelta(hours=24)
+            self.expires_at = timezone.now() + timezone.timedelta(minutes=settings.CODE_EXPIRY_MINUTES)
+        
+        # Cleanup old codes for this user before saving new one
+        LoginCode.objects.filter(
+            user=self.user,
+            expires_at__lt=timezone.now()
+        ).delete()
+        
         super().save(*args, **kwargs)
 
     def is_valid(self):
         return timezone.now() <= self.expires_at
     
+    @classmethod
+    def cleanup_expired(cls):
+        cls.objects.filter(expires_at__lt=timezone.now()).delete()
+    
+    def __str__(self):
+        return f"Login code for {self.user.email} (expires {self.expires_at})"
+
 
 class URLRedirect(models.Model):
     url = models.URLField(unique=True)

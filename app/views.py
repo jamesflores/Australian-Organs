@@ -1,5 +1,6 @@
 import json
 from operator import itemgetter
+import random
 from django.forms import ValidationError
 from django.shortcuts import render
 from django.conf import settings
@@ -9,11 +10,12 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.urls import reverse
 from django_ratelimit.decorators import ratelimit
 from django.contrib.auth import login, logout
+from django.contrib import messages
 from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.conf import settings
 import requests
-from .models import Bookmark, CustomUser, MagicLink, URLRedirect
+from .models import Bookmark, CustomUser, LoginCode, URLRedirect
 from django.utils import timezone
 from urllib.parse import unquote
 from django.contrib.auth.decorators import login_required
@@ -140,73 +142,102 @@ def redirect(request):
 
     URLRedirect.hit(url)
     return HttpResponseRedirect(url)  # Redirect to the URL
-
+    
 
 @ratelimit(key='ip', rate='10/m')   # Limit to 10 requests per minute per IP address
-def request_magic_link(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        error = None
-
-        # Sanity check email
-        if not email:
-            error = 'Email is required'
-        else:
-            # Additional email validation
-            try:
-                validate_email(email)
-                # Check for common disposable email domains
-                disposable_domains = ['tempmail.com', 'throwawaymail.com', 'mailinator.com']
-                domain = email.split('@')[-1]
-                if domain in disposable_domains:
-                    error = 'Please use a non-disposable email address'
-            except ValidationError:
-                error = 'Please enter a valid email address'
-
-        if error:
-            return render(request, 'map/request_magic_link.html', {'error': error})
-        
-        user, created = CustomUser.objects.get_or_create(email=email)
-        magic_link = MagicLink.objects.create(user=user)
-        
-        # Send email with magic link
-        async_task(
-            'django.core.mail.send_mail',
-            'Your magic link to log into Australian Organs',
-            f'Click here to log in: {request.build_absolute_uri("/login/")}?token={magic_link.token}',
-            settings.DEFAULT_FROM_EMAIL,
-            [email],
-            fail_silently=False,
-        )
-        
-        return render(request, 'map/magic_link_sent.html')
-    
-    return render(request, 'map/request_magic_link.html')
-
-
-def login_with_magic_link(request):
+def send_login_code(request):
     # check if already logged in
     if request.user.is_authenticated:
         return HttpResponseRedirect(reverse('app'))
     
-    token = request.GET.get('token')
-    if not token:
-        return HttpResponseRedirect(reverse('request_magic_link'))
-    
-    # check if magic link is valid
-    try:
-        magic_link = MagicLink.objects.get(token=token)
-        if magic_link.is_valid():
-            login(request, magic_link.user)
-            magic_link.delete()
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        error = None
+
+        # Validate the email
+        if not email:
+            error = 'Email is required.'
+        else:
+            try:
+                validate_email(email)
+            except ValidationError:
+                error = 'Please enter a valid email address.'
+
+        if error:
+            return render(request, 'login_code.html', {'error': error})
+
+        # Get or create the user
+        user, created = CustomUser.objects.get_or_create(email=email)
+
+        # Store email in session
+        request.session['login_email'] = email
+
+        # Generate a random 6-digit code
+        code = f"{random.randint(100000, 999999)}"
+
+        # Create a new LoginCode entry
+        LoginCode.objects.create(user=user, code=code)
+
+        # Build the verification URL
+        verification_url = request.build_absolute_uri(reverse('verify_login_code'))
+
+        # Send the login code to the user's email
+        async_task(
+            'django.core.mail.send_mail',
+            f"Your login code is: {code}",
+            f"""Your login code is: {code}
+
+Click here to verify your code:
+{verification_url}""",
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False,
+        )
+
+        # Display success message
+        messages.success(request, "Login code sent to your email.")
+        return HttpResponseRedirect(reverse('verify_login_code'))
+
+    # Handle GET request: display the form
+    return render(request, 'map/request_login_code.html')
+
+
+def verify_login_code(request):
+    if request.user.is_authenticated:
+        return HttpResponseRedirect(reverse('app'))
+
+    if request.method == "POST":
+        # Get email from session instead of POST data for security
+        email = request.session.get('login_email')
+        code = request.POST.get("code")
+
+        if not email:
+            messages.error(request, "Session expired. Please try again.")
+            return HttpResponseRedirect(reverse('login'))
+
+        # Try to get or create the user
+        user, created = CustomUser.objects.get_or_create(email=email)
+
+        # Fetch the login code for the user
+        login_code = LoginCode.objects.filter(user=user, code=code).first()
+
+        if login_code and login_code.is_valid():
+            # Clear the session email after successful login
+            request.session.pop('login_email', None)
+            # Log in the user
+            login(request, user)
+            messages.success(request, "Successfully logged in.")
             return HttpResponseRedirect(reverse('index'))
         else:
-            return render(request, 'map/invalid_magic_link.html')
-    except MagicLink.DoesNotExist:
-        return render(request, 'map/invalid_magic_link.html')
-    
+            # Invalid or expired code
+            messages.error(request, "Invalid or expired login code.")
+            return HttpResponseRedirect(reverse('login'))
+        
+    return render(request, "map/verify_login_code.html", {'email': request.session.get('login_email', '')})
+
 
 def logout_view(request):
+    request.session.flush()
     logout(request)
     return HttpResponseRedirect(reverse('index'))
 
