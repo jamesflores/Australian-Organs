@@ -1,4 +1,4 @@
-import json
+from django.core.mail import EmailMessage
 from operator import itemgetter
 import random
 from django.forms import ValidationError
@@ -15,8 +15,7 @@ from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.conf import settings
 import requests
-from .models import Bookmark, CustomUser, LoginCode, URLRedirect
-from django.utils import timezone
+from .models import Bookmark, CustomUser, LoginCode
 from urllib.parse import unquote
 from django.contrib.auth.decorators import login_required
 from django_q.tasks import async_task
@@ -140,7 +139,6 @@ def redirect(request):
         if response.status_code == 200 and response.json() != []:
             return HttpResponseRedirect(reverse('organ', args=[organ_id]))
 
-    URLRedirect.hit(url)
     return HttpResponseRedirect(url)  # Redirect to the URL
     
 
@@ -274,3 +272,58 @@ def check_bookmark(request):
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+    
+
+def contact_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        phone = request.POST.get('phone', '')  # Optional field
+        message = request.POST.get('message')
+        turnstile_response = request.POST.get('cf-turnstile-response')
+
+        # Verify Cloudflare Turnstile
+        turnstile_verify_url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
+        turnstile_secret = settings.CLOUDFLARE_TURNSTILE_SECRET_KEY
+        response = requests.post(turnstile_verify_url, data={
+            'secret': turnstile_secret,
+            'response': turnstile_response,
+        })
+        result = response.json()
+        print(result)
+        if not result.get('success', False):
+            messages.error(request, 'Bot verification failed. Please try again.')
+            return HttpResponseRedirect(reverse('contact'))
+
+        subject = 'New Contact Form Submission'
+        body = f"Email: {email}\nPhone: {phone}\n\nMessage:\n{message}"
+        from_email = settings.DEFAULT_FROM_EMAIL
+        recipient_list = [settings.CONTACT_EMAIL]
+
+        # Send email to the site owner
+        email_message = EmailMessage(
+            subject,
+            body,
+            from_email,
+            recipient_list,
+            headers={'Reply-To': email},
+        )
+        async_task(email_message.send)
+
+        # Send confirmation email to the sender
+        confirmation_subject = 'Your message has been received'
+        confirmation_body = f'Thank you for contacting us. We have received your message and will get back to you soon.\n\nOriginal message:\n{message}'
+        async_task(
+            'django.core.mail.send_mail',
+            confirmation_subject,
+            confirmation_body,
+            from_email,
+            [email],
+            fail_silently=False,
+        )
+
+        messages.success(request, 'Thank you for your message. We will get back to you soon.')
+        return HttpResponseRedirect(reverse('contact'))
+
+    return render(request, 'map/contact_form.html',{
+        'site_key': settings.CLOUDFLARE_TURNSTILE_SITE_KEY
+    })              

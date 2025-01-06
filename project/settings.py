@@ -186,6 +186,7 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+CONTACT_EMAIL = os.getenv('CONTACT_EMAIL')
 
 
 # Django Q settings
@@ -212,6 +213,7 @@ if os.getenv('SENTRY_DSN'):
         profiles_sample_rate=0.0,
     )
 
+
 # Django messages tags
 
 MESSAGE_TAGS = {
@@ -232,3 +234,5 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Application settings
 
 CODE_EXPIRY_MINUTES = 10
+CLOUDFLARE_TURNSTILE_SITE_KEY = os.getenv('CLOUDFLARE_TURNSTILE_SITE_KEY')
+CLOUDFLARE_TURNSTILE_SECRET_KEY = os.getenv('CLOUDFLARE_TURNSTILE_SECRET_KEY')
