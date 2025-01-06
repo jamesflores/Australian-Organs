@@ -274,6 +274,22 @@ def check_bookmark(request):
         return JsonResponse({'error': str(e)}, status=400)
     
 
+def send_email(subject, body, from_email, recipient_list, reply_to=None):
+    """
+    A standalone function to send an email.
+    This function is picklable and can be used with async_task.
+    """
+    headers = {'Reply-To': reply_to} if reply_to else {}
+    email_message = EmailMessage(
+        subject,
+        body,
+        from_email,
+        recipient_list,
+        headers=headers,
+    )
+    email_message.send()
+
+
 def contact_view(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -289,7 +305,7 @@ def contact_view(request):
             'response': turnstile_response,
         })
         result = response.json()
-        print(result)
+        print(result)  # Debugging log
         if not result.get('success', False):
             messages.error(request, 'Bot verification failed. Please try again.')
             return HttpResponseRedirect(reverse('contact'))
@@ -299,31 +315,37 @@ def contact_view(request):
         from_email = settings.DEFAULT_FROM_EMAIL
         recipient_list = [settings.CONTACT_EMAIL]
 
-        # Send email to the site owner
-        email_message = EmailMessage(
-            subject,
-            body,
-            from_email,
-            recipient_list,
-            headers={'Reply-To': email},
-        )
-        async_task(email_message.send)
+        try:
+            # Send email to the site owner
+            async_task(
+                send_email,
+                subject,
+                body,
+                from_email,
+                recipient_list,
+                email,  # Reply-To header
+            )
 
-        # Send confirmation email to the sender
-        confirmation_subject = 'Your message has been received'
-        confirmation_body = f'Thank you for contacting us. We have received your message and will get back to you soon.\n\nOriginal message:\n{message}'
-        async_task(
-            'django.core.mail.send_mail',
-            confirmation_subject,
-            confirmation_body,
-            from_email,
-            [email],
-            fail_silently=False,
-        )
+            # Send confirmation email to the sender
+            confirmation_subject = 'Your message has been received'
+            confirmation_body = (
+                f'Thank you for contacting us. We have received your message and will get back to you soon.\n\n'
+                f'Original message:\n{message}'
+            )
+            async_task(
+                send_email,
+                confirmation_subject,
+                confirmation_body,
+                from_email,
+                [email],
+            )
 
-        messages.success(request, 'Thank you for your message. We will get back to you soon.')
+            messages.success(request, 'Thank you for your message. We will get back to you soon.')
+        except Exception as e:
+            messages.error(request, f'An error occurred while sending the email: {e}')
+
         return HttpResponseRedirect(reverse('contact'))
 
-    return render(request, 'map/contact_form.html',{
-        'site_key': settings.CLOUDFLARE_TURNSTILE_SITE_KEY
-    })              
+    return render(request, 'map/contact_form.html', {
+        'site_key': settings.CLOUDFLARE_TURNSTILE_SITE_KEY,
+    })
