@@ -1,0 +1,61 @@
+{% extends "map/layout.html" %}
+{% load static %}
+
+{% block content %}
+<h1 class="mt-5 mb-3">Contact Us</h1>
+
+<!-- Display messages -->
+{% if messages %}
+    <div class="row">
+        <div class="col-md-12">
+            {% for message in messages %}
+            <div class="alert {{ message.tags }}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+<form method="post" action="{% url 'contact' %}">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" class="form-control" name="email" id="email" placeholder="Enter your email" required>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="phone">Phone (Optional)</label>
+                <input type="text" class="form-control" name="phone" id="phone" placeholder="Enter your phone number">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea class="form-control" name="message" id="message" rows="5" placeholder="Enter your message" required></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Cloudflare Turnstile -->
+            <div class="form-group">
+                <div class="cf-turnstile" data-sitekey="{{ site_key }}"></div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </div>
+</form>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+{% endblock %}

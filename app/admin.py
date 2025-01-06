@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Bookmark, URLRedirect
+from .models import CustomUser, Bookmark, URLRedirect, LoginCode
 
 
 class CustomUserAdmin(UserAdmin):
@@ -29,6 +29,11 @@ class BookmarkAdmin(admin.ModelAdmin):
     list_display = ('user', 'organ_id', 'created_at')
 
 
+class LoginCodeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'code', 'created_at', 'expires_at')
+
+
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(URLRedirect, URLRedirectAdmin)
 admin.site.register(Bookmark, BookmarkAdmin)
+admin.site.register(LoginCode, LoginCodeAdmin)

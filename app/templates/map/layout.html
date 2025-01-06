@@ -66,7 +66,7 @@
                         <a class="nav-link" href="https://jamesfloresorganist.com/about/" target="_blank">About</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="https://jamesfloresorganist.com/contact/" target="_blank">Contact</a>
+                        <a class="nav-link" href="{% url 'contact' %}">Contact</a>
                     </li>
                     {% if request.user.is_authenticated %}
                         <li class="nav-item">
