@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<h1 class="mt-5 mb-3">Contact Us</h1>
+<h1 class="mt-5 mb-3">Contact</h1>
 
 <!-- Display messages -->
 {% if messages %}
@@ -16,6 +16,12 @@
         </div>
     </div>
 {% endif %}
+
+<div class="row">
+    <div class="col-md-12">
+        <p>Email <a href="mailto:james@jamesflores.net">james@jamesflores.net</a> or use the form below to contact me. I will respond to your message as soon as possible.</p>
+    </div>
+</div>
 
 <form method="post" action="{% url 'contact' %}">
     {% csrf_token %}

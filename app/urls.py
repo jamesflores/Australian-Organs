@@ -15,4 +15,5 @@ urlpatterns = [
     path('api/bookmark/', views.bookmark_organ, name='bookmark'),
     path('api/check_bookmark/', views.check_bookmark, name='check_bookmark'),
     path('contact/', views.contact_view, name='contact'),
+    path('about/', views.about_view, name='about'),
 ]
