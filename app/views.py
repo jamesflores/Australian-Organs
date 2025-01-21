@@ -349,3 +349,7 @@ def contact_view(request):
     return render(request, 'map/contact_form.html', {
         'site_key': settings.CLOUDFLARE_TURNSTILE_SITE_KEY,
     })
+
+
+def about_view(request):
+    return render(request, 'map/about.html')
