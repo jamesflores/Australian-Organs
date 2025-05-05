@@ -142,17 +142,28 @@ def redirect(request):
     return HttpResponseRedirect(url)  # Redirect to the URL
     
 
-@ratelimit(key='ip', rate='10/m')   # Limit to 10 requests per minute per IP address
+@ratelimit(key='ip', rate='10/m')  # Limit to 10 requests per minute per IP
 def send_login_code(request):
-    # check if already logged in
     if request.user.is_authenticated:
         return HttpResponseRedirect(reverse('app'))
-    
+
     if request.method == 'POST':
         email = request.POST.get('email')
-        error = None
+        turnstile_response = request.POST.get('cf-turnstile-response')
 
-        # Validate the email
+        # Turnstile verification
+        turnstile_verify_url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
+        turnstile_secret = settings.CLOUDFLARE_TURNSTILE_SECRET_KEY
+        response = requests.post(turnstile_verify_url, data={
+            'secret': turnstile_secret,
+            'response': turnstile_response,
+        })
+        result = response.json()
+        if not result.get('success', False):
+            messages.error(request, 'Bot verification failed. Please try again.')
+            return render(request, 'map/request_login_code.html')
+
+        # Email validation
         if not email:
             error = 'Email is required.'
         else:
@@ -160,26 +171,20 @@ def send_login_code(request):
                 validate_email(email)
             except ValidationError:
                 error = 'Please enter a valid email address.'
+            else:
+                error = None
 
         if error:
-            return render(request, 'login_code.html', {'error': error})
+            return render(request, 'map/request_login_code.html', {'error': error})
 
-        # Get or create the user
-        user, created = CustomUser.objects.get_or_create(email=email)
-
-        # Store email in session
+        user, _ = CustomUser.objects.get_or_create(email=email)
         request.session['login_email'] = email
 
-        # Generate a random 6-digit code
         code = f"{random.randint(100000, 999999)}"
-
-        # Create a new LoginCode entry
         LoginCode.objects.create(user=user, code=code)
 
-        # Build the verification URL
         verification_url = request.build_absolute_uri(reverse('verify_login_code'))
 
-        # Send the login code to the user's email
         async_task(
             'django.core.mail.send_mail',
             f"Your login code is: {code}",
@@ -192,12 +197,12 @@ Click here to verify your code:
             fail_silently=False,
         )
 
-        # Display success message
         messages.success(request, "Login code sent to your email.")
         return HttpResponseRedirect(reverse('verify_login_code'))
 
-    # Handle GET request: display the form
-    return render(request, 'map/request_login_code.html')
+    return render(request, 'map/request_login_code.html', {
+        'site_key': settings.CLOUDFLARE_TURNSTILE_SITE_KEY,
+    })
 
 
 def verify_login_code(request):
