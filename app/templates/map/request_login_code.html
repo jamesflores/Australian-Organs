@@ -38,5 +38,14 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-md-12 mt-3">
+            <!-- Cloudflare Turnstile -->
+            <div class="form-group">
+                <div class="cf-turnstile" data-sitekey="{{ site_key }}"></div>
+            </div>
+        </div>
+    </div>
 </form>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
